@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from printer-gyn4.onrender.com/portal.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:07 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrintTikTok</title>
+  <link rel="icon" href="image/tiktokicon.png" />
+  <!-- Home-screen app: opens without the browser's address bar (Android and iPhone). -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrintTikTok" />
+  <link rel="apple-touch-icon" href="image/icon-180.png" />
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    .portal { max-width: 760px; margin: 0 auto; padding: 22px 16px max(40px, env(safe-area-inset-bottom)); }
+    .hello { margin: 4px 0 18px; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .tile { display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 16px; text-decoration: none; color: var(--text);
+      background: var(--card); border: 1px solid var(--line); transition: border-color .15s, transform .15s; }
+    .tile:hover { border-color: var(--accent2); transform: translateY(-2px); }
+    .tile .icon { font-size: 30px; }
+    .tile b { font-size: 18px; }
+    .tile.main { background: linear-gradient(135deg, rgba(254, 44, 85, .18), rgba(37, 244, 238, .1)), var(--card); }
+    .status-line { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .time-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; padding: 14px 16px;
+      border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+    .time-left .big { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .time-left.low { border-color: rgba(255, 176, 32, .6); }
+    .time-left.low .big { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="brand-dot"></span>PrintTikTok</div>
+    <div class="spacer"></div>
+    <span class="muted">@<b id="meName"></b></span>
+    <button class="btn small" id="logoutBtn" type="button">Log out</button>
+  </div>
+  <div class="portal">
+    <div class="time-left" id="timeLeft" hidden>
+      <span>⏳ Time left</span>
+      <span class="big" id="timeLeftValue"></span>
+      <span class="muted" id="timeLeftUntil"></span>
+    </div>
+    <div class="tiles">
+      <a class="tile main" href="printer.html">
+        <span class="icon">🖨️</span>
+        <b>Printer</b>
+        <span class="muted">The print machine. Open it on the computer you stream from and add it in TikTok LIVE Studio with Window Capture.</span>
+      </a>
+      <a class="tile" href="settings.html">
+        <span class="icon">⚙️</span>
+        <b>Settings</b>
+        <span class="muted">Connect your LIVE, print modes, card look, sound. Works on another device, like your phone: changes show on the printer straight away.</span>
+      </a>
+      <a class="tile" href="admin.html" id="adminTile" hidden>
+        <span class="icon">👤</span>
+        <b>Admin</b>
+        <span class="muted">Create users, add or remove time, reset passwords.</span>
+      </a>
+    </div>
+    <div class="status-line">
+      <span class="pill" id="livePill">TikTok LIVE: not connected</span>
+    </div>
+  </div>
+  <script type="module">
+    import { $, api, requireSession, logout, liveStatusText, accountEnded, connectSocket } from './js/common.js';
+    /* Time left on the account, counting down every second. The account is
+       re-read every minute, so time the admin adds shows up here by itself;
+       at zero the page goes to the login screen. */
+    let expiresAt = null;
+    function showTimeLeft() {
+      const box = $('timeLeft');
+      box.hidden = false;
+      if (!expiresAt) {
+        $('timeLeftValue').textContent = 'No time limit';
+        $('timeLeftUntil').textContent = '';
+        box.classList.remove('low');
+        return;
+      }
+      const ms = new Date(expiresAt).getTime() - Date.now();
+      if (ms <= 0) return accountEnded('expired');
+      const s = Math.floor(ms / 1000);
+      const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      const pad = (n) => String(n).padStart(2, '0');
+      $('timeLeftValue').textContent = d > 0 ? `${d} day${d === 1 ? '' : 's'} ${h} h ${pad(m)} min`
+        : h > 0 ? `${h} h ${pad(m)} min ${pad(sec)} s` : `${m} min ${pad(sec)} s`;
+      $('timeLeftUntil').textContent = 'until ' + new Date(expiresAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      box.classList.toggle('low', ms < 3600 * 1000); // under an hour: orange
+    }
+    try {
+      const me = await requireSession();
+      $('meName').textContent = me.username;
+      $('adminTile').hidden = me.role !== 'admin';
+      $('logoutBtn').addEventListener('click', logout);
+      expiresAt = me.expiresAt;
+      showTimeLeft();
+      connectSocket(() => {}); // the server closes it (and this page) the moment the account is cut off
+      setInterval(showTimeLeft, 1000);
+      setInterval(async () => {
+        try { expiresAt = (await requireSession()).expiresAt; showTimeLeft(); } catch { /* sent to login */ }
+      }, 60000);
+      try {
+        // Leaving the page mid-request is fine; nothing to report.
+        const [text, cls] = liveStatusText(await api('/api/live/status'));
+        $('livePill').textContent = 'TikTok LIVE: ' + text.replace(/^Connected to /, 'connected to ');
+        if (cls === 'ok') $('livePill').classList.add('ok');
+      } catch { /* ignore */ }
+    } catch { /* left the page mid-request, or logged out: nothing to show */ }
+  </script>
+</body>
+
+<!-- Mirrored from printer-gyn4.onrender.com/portal.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:07 GMT -->
+</html>

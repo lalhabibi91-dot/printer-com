@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from printer-gyn4.onrender.com/settings.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:08 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrintTikTok – Settings</title>
+  <link rel="icon" href="image/tiktokicon.png" />
+  <!-- Home-screen app: opens without the browser's address bar (Android and iPhone). -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrintTikTok" />
+  <link rel="apple-touch-icon" href="image/icon-180.png" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/printer.css" />
+  <link rel="stylesheet" href="css/settings.css" />
+</head>
+<body class="settings-page">
+  <div class="topbar">
+    <div class="brand"><span class="brand-dot"></span>Settings</div>
+    <div class="spacer"></div>
+    <span class="pill" id="printerPill">Printer: checking…</span>
+    <span class="muted" id="saveState"></span>
+  </div>
+  <div class="nav-row">
+    <a class="btn small" href="portal.html">Portal</a>
+    <a class="btn small" href="printer.html" target="_blank" rel="noopener">Open printer ↗</a>
+    <span class="spacer"></span>
+    <span class="muted">@<b id="meName"></b></span>
+    <button class="btn small" id="logoutBtn" type="button">Log out</button>
+  </div>
+
+  <main class="settings-main">
+    <details open class="card">
+      <summary>TikTok LIVE</summary>
+      <label for="liveUser">TikTok username that is LIVE</label>
+      <input id="liveUser" type="text" placeholder="@username" />
+      <label for="liveSession">TikTok Session ID (optional)</label>
+      <input id="liveSession" type="password" placeholder="helps when the room won't connect" />
+      <div class="row">
+        <button class="btn primary" id="liveConnect" type="button">Connect</button>
+        <button class="btn" id="liveDisconnect" type="button">Disconnect</button>
+      </div>
+      <div class="status" id="liveStatus">Not connected</div>
+    </details>
+
+    <details open class="card">
+      <summary>Test print</summary>
+      <label for="testUser">TikTok username</label>
+      <input id="testUser" type="text" placeholder="@username" />
+      <div class="row">
+        <button class="btn primary" data-test="small" type="button">Print</button>
+        <button class="btn" data-test="medium" type="button">Medium</button>
+        <button class="btn" data-test="vip" type="button">VIP</button>
+        <button class="btn" data-test="top" type="button">TOP 1</button>
+        <button class="btn" data-test="comment" type="button">Comment</button>
+      </div>
+      <div class="row">
+        <button class="btn small" id="feedBtn" type="button">Feed paper</button>
+        <button class="btn small danger" id="clearBtn" type="button">Clear paper</button>
+      </div>
+      <div class="status" id="testStatus"></div>
+    </details>
+
+    <details open class="card">
+      <summary>Print modes</summary>
+      <div class="muted small-line">A gift prints in the highest mode its coin value reaches (coins × how many were sent together). When several are waiting, VIP prints first, then Medium, then Small, then comments. The panel icon is only what viewers see.</div>
+      <div id="tiers"></div>
+      <label class="check"><input id="showLabel" type="checkbox" /> Show the panel</label>
+      <label for="labelPos">Panel position</label>
+      <select id="labelPos">
+        <option value="top-right">Top right</option>
+        <option value="top-left">Top left</option>
+        <option value="bottom-right">Bottom right</option>
+        <option value="bottom-left">Bottom left</option>
+      </select>
+    </details>
+
+    <details class="card">
+      <summary>Comments</summary>
+      <div class="muted small-line">When a viewer comments, their photo prints on a small card, so the printer keeps going between gifts. Gifts always come first.</div>
+      <label class="check"><input id="commentsOn" type="checkbox" /> Print the photo of viewers who comment</label>
+      <div class="grid2">
+        <div><label for="commentCooldown">Same viewer again after (minutes)</label><input id="commentCooldown" type="number" min="0" step="1" /></div>
+        <div><label for="commentSize">Card size</label>
+          <select id="commentSize"><option value="200">Extra small</option><option value="240">Small</option><option value="300">Medium</option><option value="360">Large</option></select></div>
+      </div>
+      <label for="commentKeyword">Only comments containing (empty = any comment)</label>
+      <input id="commentKeyword" type="text" placeholder="e.g. print" />
+      <div class="grid2">
+        <div><label for="commentLabel">Panel label</label><input id="commentLabel" type="text" /></div>
+        <div><label class="check" style="margin-top:30px"><input id="commentShowInPanel" type="checkbox" /> Show in panel 💬</label></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Card</summary>
+      <div class="grid2">
+        <div><label for="decoPrefix">Before name</label><input id="decoPrefix" type="text" /></div>
+        <div><label for="decoSuffix">After name</label><input id="decoSuffix" type="text" /></div>
+      </div>
+      <label for="nameMode">Name shown</label>
+      <select id="nameMode"><option value="nickname">Display name</option><option value="username">@username</option></select>
+      <label for="speed">Print speed <span id="speedVal"></span></label>
+      <input id="speed" type="range" min="0.5" max="2.5" step="0.1" />
+      <label>Custom image (PNG with a see-through background works best)</label>
+      <div class="row">
+        <img id="decoPreview" class="deco-preview" alt="" hidden />
+        <button class="btn small" id="decoPick" type="button">Upload image</button>
+        <button class="btn small danger" id="decoRemove" type="button">Remove</button>
+      </div>
+      <label for="decoPlacement">Placement</label>
+      <select id="decoPlacement">
+        <option value="behind">Behind the profile picture</option>
+        <option value="front">In front of the profile picture (frame)</option>
+        <option value="background">Card background</option>
+      </select>
+      <label for="decoScale">Image size <span id="decoScaleVal"></span></label>
+      <input id="decoScale" type="range" min="0.5" max="2.5" step="0.05" />
+      <input id="decoFile" type="file" accept="image/*" hidden />
+    </details>
+
+    <details class="card">
+      <summary>VIP card look</summary>
+      <label for="vipFrame">Frame</label>
+      <select id="vipFrame">
+        <option value="top1">Built-in: TOP 1 for the top donor, flower frame for others</option>
+        <option value="crown">Drawn gold crown</option>
+        <option value="none">No frame</option>
+      </select>
+      <div class="muted small-line">TOP 1 goes to the viewer who has sent the most coins since you pressed Connect. An uploaded VIP frame replaces the flower frame for everyone else.</div>
+      <div class="grid2">
+        <div><label for="vipCrownText">Crown text (drawn crown)</label><input id="vipCrownText" type="text" /></div>
+        <div><label for="vipStamp">Stamp</label><input id="vipStamp" type="text" /></div>
+      </div>
+      <label for="vipThanks">Thank-you text</label>
+      <input id="vipThanks" type="text" />
+      <label>VIP custom image (optional)</label>
+      <div class="row">
+        <img id="vipDecoPreview" class="deco-preview" alt="" hidden />
+        <button class="btn small" id="vipDecoPick" type="button">Upload image</button>
+        <button class="btn small danger" id="vipDecoRemove" type="button">Remove</button>
+      </div>
+      <label for="vipDecoPlacement">Placement</label>
+      <select id="vipDecoPlacement">
+        <option value="behind">Behind the profile picture</option>
+        <option value="front">In front of the profile picture (frame)</option>
+        <option value="background">Card background</option>
+      </select>
+      <label for="vipDecoScale">Image size <span id="vipDecoScaleVal"></span></label>
+      <input id="vipDecoScale" type="range" min="0.5" max="3" step="0.05" />
+      <input id="vipDecoFile" type="file" accept="image/*" hidden />
+    </details>
+
+    <details class="card">
+      <summary>Sound</summary>
+      <label class="check"><input id="soundEnabled" type="checkbox" /> Printer sound (plays while printing, paper sliding when it feeds)</label>
+      <label for="soundPreset">Sound</label>
+      <div class="row">
+        <select id="soundPreset" style="flex:1;min-width:0"></select>
+        <button class="btn small" id="soundPreview" type="button">▶ Listen</button>
+      </div>
+      <label for="soundVolume">Volume <span id="soundVolumeVal"></span></label>
+      <input id="soundVolume" type="range" min="0" max="1" step="0.05" />
+      <div class="muted small-line">▶ Listen plays one card printing (and the VIP stamp) on this device. The sound plays on the printer screen; click it once there to allow sound.</div>
+    </details>
+
+    <details class="card">
+      <summary>Look</summary>
+      <div class="muted small-line">The videos themselves are chosen on the printer computer (⚙ on the printer screen).</div>
+      <label for="split">Machine height <span id="splitVal"></span></label>
+      <input id="split" type="range" min="30" max="100" step="1" />
+      <label for="zoom">Machine zoom <span id="zoomVal"></span></label>
+      <input id="zoom" type="range" min="0.7" max="1.5" step="0.05" />
+      <div class="grid2">
+        <div><label for="fitTop">Top video</label>
+          <select id="fitTop"><option value="cover">Fill</option><option value="contain">Fit</option><option value="fill">Stretch</option></select></div>
+        <div><label for="fitBottom">Bottom video</label>
+          <select id="fitBottom"><option value="cover">Fill</option><option value="contain">Fit</option><option value="fill">Stretch</option></select></div>
+      </div>
+      <label class="check"><input id="videoSound" type="checkbox" /> Play video sound</label>
+    </details>
+  </main>
+
+  <script type="module" src="js/settings.js"></script>
+</body>
+
+<!-- Mirrored from printer-gyn4.onrender.com/settings.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:09 GMT -->
+</html>

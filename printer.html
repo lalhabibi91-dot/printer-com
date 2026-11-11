@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from printer-gyn4.onrender.com/printer.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:08 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrintTikTok – Printer</title>
+  <link rel="icon" href="image/tiktokicon.png" />
+  <!-- Home-screen app: opens without the browser's address bar (Android and iPhone). -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrintTikTok" />
+  <link rel="apple-touch-icon" href="image/icon-180.png" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/printer.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="printer-page">
+  <div id="stage">
+    <section id="topArea">
+      <video id="topVideo" class="bg-video" muted loop playsinline></video>
+      <div id="scene"></div>
+      <div id="queueBadge" class="queue-badge" hidden></div>
+    </section>
+    <section id="bottomArea">
+      <video id="bottomVideo" class="bg-video" muted loop playsinline></video>
+    </section>
+    <!-- On the whole screen (not the top area), so it can also sit at the bottom. -->
+    <div id="giftLabel" class="gift-label"><div id="giftLabelRows"></div><button id="giftLabelToggle" class="gift-label-toggle" type="button" aria-label="Show or hide the other modes">⌃</button></div>
+  </div>
+
+  <button id="pausedNote" class="paused-note" type="button" hidden>
+    <b>The printer is open in another tab</b>
+    <span>This tab is paused so your computer isn't doing the work twice. Click to use this tab instead.</span>
+  </button>
+
+  <button id="gearBtn" class="gear" type="button" title="Videos and settings" aria-label="Videos and settings">⚙</button>
+
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div class="brand"><span class="brand-dot"></span>Printer</div>
+      <button class="btn small" id="closeDrawer" type="button">✕</button>
+    </div>
+    <div class="muted small-line">Logged in as <b id="meName"></b> · <a href="portal.html">Portal</a> · <a href="#" id="logoutLink">Log out</a></div>
+    <a class="btn primary" href="settings.html" target="_blank" rel="noopener" style="width:100%;margin-top:10px">Open settings ↗</a>
+    <div class="muted small-line">Settings can also be opened on your phone: log in there and choose Settings. Changes show here straight away.</div>
+
+    <details open>
+      <summary>Videos on this computer</summary>
+      <div class="muted small-line">Videos are big, so each printer computer keeps its own. Fill / Fit and the machine height are in Settings.</div>
+      <label>Top video (behind the machine)</label>
+      <div class="row">
+        <button class="btn small" data-pick="top" type="button">Choose video</button>
+        <button class="btn small danger" data-remove="top" type="button">Remove</button>
+      </div>
+      <label>Bottom video</label>
+      <div class="row">
+        <button class="btn small" data-pick="bottom" type="button">Choose video</button>
+        <button class="btn small danger" data-remove="bottom" type="button">Remove</button>
+      </div>
+      <input id="videoFile" type="file" accept="video/*" hidden />
+    </details>
+    <div class="status" id="saveStatus"></div>
+    <div class="muted small-line">Tip: add this window in TikTok LIVE Studio with <b>Window Capture</b>. Click anywhere once to turn on the printer sound. The ⚙ button hides when the mouse is still.</div>
+  </aside>
+
+  <script src="js/clientProfileFallback.js"></script>
+  <script type="module" src="js/printer.js"></script>
+</body>
+
+<!-- Mirrored from printer-gyn4.onrender.com/printer.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:08 GMT -->
+</html>

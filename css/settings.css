@@ -1,0 +1,8 @@
+.settings-page .nav-row { display: flex; align-items: center; gap: 8px; padding: 10px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.settings-page .nav-row .spacer { flex: 1; }
+.settings-main { max-width: 680px; margin: 0 auto; padding: 14px 14px max(40px, env(safe-area-inset-bottom)); display: grid; gap: 12px; }
+.settings-main details.card { padding: 12px 16px 16px; }
+.settings-main summary { cursor: pointer; font-weight: 800; font-size: 15px; padding: 4px 0; }
+.settings-main .row .btn { flex: 0 0 auto; }
+#printerPill.on { background: rgba(61, 220, 132, .15); color: var(--ok); }
+#printerPill.off { background: rgba(255, 176, 32, .15); color: var(--warn); }

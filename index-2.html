@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from printer-gyn4.onrender.com/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:09 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrintTikTok – Log in</title>
+  <link rel="icon" href="image/tiktokicon.png" />
+  <!-- Home-screen app: opens without the browser's address bar (Android and iPhone). -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrintTikTok" />
+  <link rel="apple-touch-icon" href="image/icon-180.png" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="card login" id="loginForm" autocomplete="on" onsubmit="return false">
+      <div class="brand"><span class="brand-dot"></span>PrintTikTok</div>
+      <div class="muted">TikTok LIVE print machine</div>
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="username" required />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+      <button class="btn primary" type="submit" id="loginBtn">Log in</button>
+      <div class="error" id="error"></div>
+    </form>
+  </div>
+  <script>
+    (async function () {
+      const go = () => { location.replace('portal.html'); };
+      try {
+        const st = await (await fetch('/api/auth/status', { credentials: 'same-origin' })).json();
+        if (st.authenticated) return go(st.user);
+      } catch (e) { /* stay on the login form */ }
+
+      const form = document.getElementById('loginForm');
+      const err = document.getElementById('error');
+      // Sent here because the account's time ran out or the admin turned it off.
+      const ended = new URLSearchParams(location.search).get('ended');
+      if (ended) {
+        err.textContent = {
+          expired: 'Your time has ended. Please contact the admin to add more time.',
+          disabled: 'Your account has been turned off. Please contact the admin.',
+          deleted: 'This account no longer exists. Please contact the admin.',
+        }[ended] || 'You have been logged out. Please log in again.';
+      }
+      const btn = document.getElementById('loginBtn');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        err.textContent = '';
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: document.getElementById('username').value, password: document.getElementById('password').value }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || !body.success) throw new Error(body.error || 'Login failed');
+          go(body.user);
+        } catch (ex) {
+          err.textContent = ex.message;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+
+<!-- Mirrored from printer-gyn4.onrender.com/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:09 GMT -->
+</html>

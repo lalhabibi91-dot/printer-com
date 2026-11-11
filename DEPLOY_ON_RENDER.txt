@@ -1,0 +1,13 @@
+EASY RENDER DEPLOYMENT
+
+1. Upload all files in this folder to the ROOT of a new GitHub repository.
+2. Render Dashboard -> New -> Blueprint -> select that repository.
+3. Render reads render.yaml. Choose Apply.
+4. Enter:
+   BOT_TOKEN = token from @BotFather
+   ADMIN_TELEGRAM_IDS = your numeric Telegram user ID (e.g. 123456789)
+   INITIAL_ADMIN_PASSWORD = choose a strong website admin password
+5. Deploy. SESSION_SECRET is generated automatically.
+6. The Blueprint uses a paid Starter service and a 1 GB persistent disk to retain account records.
+
+Bot commands: /adduser username password days, /users, /delete username, /disable username, /enable username, /resetpass username newpassword.

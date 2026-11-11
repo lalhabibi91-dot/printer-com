@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from printer-gyn4.onrender.com/admin.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:09 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrintTikTok – Admin</title>
+  <link rel="icon" href="image/tiktokicon.png" />
+  <!-- Home-screen app: opens without the browser's address bar (Android and iPhone). -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrintTikTok" />
+  <link rel="apple-touch-icon" href="image/icon-180.png" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="brand-dot"></span>PrintTikTok Admin</div>
+    <div class="spacer"></div>
+    <span class="muted" id="me"></span>
+    <a class="btn small" href="portal.html">Portal</a>
+    <button class="btn small" id="logoutBtn" type="button">Log out</button>
+  </div>
+
+  <div class="page">
+    <form class="card" id="createForm" autocomplete="off" onsubmit="return false">
+      <h3 style="margin:0 0 4px">Create user</h3>
+      <div class="muted">Each user logs in with their own account and gets their own printer, TikTok LIVE connection and videos.</div>
+      <div class="form-grid">
+        <div><label for="newUsername">Username</label><input id="newUsername" type="text" required /></div>
+        <div><label for="newPassword">Password</label><input id="newPassword" type="text" required /></div>
+        <div><label for="newDays">Days</label><input id="newDays" type="number" min="0" value="30" /></div>
+        <div><label for="newHours">Hours</label><input id="newHours" type="number" min="0" value="0" /></div>
+        <div><label for="newMinutes">Minutes</label><input id="newMinutes" type="number" min="0" value="0" /></div>
+        <div><label for="newRole">Role</label>
+          <select id="newRole"><option value="customer">Customer</option><option value="admin">Admin</option></select></div>
+        <div><label for="newNote">Note</label><input id="newNote" type="text" placeholder="optional" /></div>
+        <div><button class="btn primary" type="submit">Create</button></div>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:6px">Days, hours and minutes add up. All 0 = never expires.</div>
+      <div class="error" id="createError"></div>
+    </form>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px">Users <span class="muted" id="count"></span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Status</th><th>Expires</th><th>TikTok LIVE</th><th>Last seen</th><th>Note</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="error" id="listError"></div>
+    </div>
+  </div>
+
+  <script>
+    (async function () {
+      const $ = (id) => document.getElementById(id);
+      const api = async (url, opts = {}) => {
+        const res = await fetch(url, {
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          ...opts,
+          body: opts.body ? JSON.stringify(opts.body) : undefined,
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 401) { location.replace('index-2.html'); throw new Error('Please log in'); }
+        if (!res.ok || body.success === false) throw new Error(body.error || 'Request failed');
+        return body;
+      };
+
+      const st = await (await fetch('/api/auth/status', { credentials: 'same-origin' })).json();
+      if (!st.authenticated) return location.replace('index-2.html');
+      if (st.user.role !== 'admin') return location.replace('portal.html');
+      const meId = st.user.id;
+      $('me').textContent = '@' + st.user.username;
+
+      const fmtDate = (d) => d ? new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
+      // "2d 3h left", "45m left", "expired"
+      const left = (d) => {
+        if (!d) return '';
+        let m = Math.round((new Date(d).getTime() - Date.now()) / 60000);
+        if (m <= 0) return 'expired';
+        const days = Math.floor(m / 1440); m -= days * 1440;
+        const h = Math.floor(m / 60); m -= h * 60;
+        return [days && days + 'd', h && h + 'h', (!days && m) && m + 'm'].filter(Boolean).join(' ') + ' left';
+      };
+      const ago = (d) => {
+        if (!d) return 'never';
+        const s = Math.round((Date.now() - new Date(d).getTime()) / 1000);
+        if (s < 120) return 'just now';
+        if (s < 3600) return Math.round(s / 60) + ' min ago';
+        if (s < 86400) return Math.round(s / 3600) + ' h ago';
+        return Math.round(s / 86400) + ' d ago';
+      };
+      const el = (tag, props = {}, ...kids) => {
+        const n = Object.assign(document.createElement(tag), props);
+        kids.forEach((k) => n.append(k));
+        return n;
+      };
+
+      async function load() {
+        $('listError').textContent = '';
+        try {
+          const { users } = await api('/api/users');
+          $('count').textContent = '(' + users.length + ')';
+          const tbody = $('rows');
+          tbody.innerHTML = '';
+          users.forEach((u) => {
+            const online = u.lastSeen && Date.now() - new Date(u.lastSeen).getTime() < 3 * 60 * 1000;
+            const status = !u.isActive ? el('span', { className: 'pill off', textContent: 'Disabled' })
+              : u.expired ? el('span', { className: 'pill off', textContent: 'Expired' })
+                : el('span', { className: 'pill ok', textContent: 'Active' });
+            const who = el('td', {}, el('span', { className: 'dot' + (online ? ' on' : '') }), u.username);
+            if (u.role === 'admin') who.append(' ', el('span', { className: 'pill admin', textContent: 'admin' }));
+
+            const act = el('div', { className: 'actions' });
+            const button = (text, fn, cls = '') => {
+              const b = el('button', { className: 'btn small ' + cls, type: 'button', textContent: text });
+              b.addEventListener('click', async () => {
+                b.disabled = true;
+                try { await fn(); await load(); } catch (e) { $('listError').textContent = e.message; } finally { b.disabled = false; }
+              });
+              act.append(b);
+            };
+            // Add or take away time: amount + unit, then + or −.
+            const amount = el('input', { type: 'number', min: '1', value: '1', className: 'adj-amount', title: 'Amount' });
+            const unit = el('select', { className: 'adj-unit', title: 'Unit' },
+              el('option', { value: '1', textContent: 'min' }),
+              el('option', { value: '60', textContent: 'hour', selected: true }),
+              el('option', { value: '1440', textContent: 'day' }));
+            act.append(amount, unit);
+            const minutes = () => Math.max(0, Number(amount.value) || 0) * Number(unit.value);
+            button('+', () => api('/api/users/' + u.id, { method: 'PATCH', body: { addMinutes: minutes() } }));
+            button('−', () => api('/api/users/' + u.id, { method: 'PATCH', body: { addMinutes: -minutes() } }));
+            button('No expiry', () => api('/api/users/' + u.id, { method: 'PATCH', body: { noExpiry: true } }));
+            if (u.id !== meId) {
+              button(u.isActive ? 'Disable' : 'Enable', () => api('/api/users/' + u.id, { method: 'PATCH', body: { isActive: !u.isActive } }));
+            }
+            button('New password', async () => {
+              const pw = window.prompt('New password for ' + u.username + ' (6+ characters)');
+              if (pw) await api('/api/users/' + u.id, { method: 'PATCH', body: { password: pw } });
+            });
+            if (u.id !== meId) {
+              button('Delete', async () => {
+                if (window.confirm('Delete ' + u.username + '?')) await api('/api/users/' + u.id, { method: 'DELETE' });
+              }, 'danger');
+            }
+
+            tbody.append(el('tr', {},
+              who,
+              el('td', {}, status),
+              el('td', {}, u.expiresAt ? fmtDate(u.expiresAt) : 'Never',
+                u.expiresAt ? el('div', { className: 'muted', style: 'font-size:12px', textContent: left(u.expiresAt) }) : ''),
+              el('td', { textContent: u.tiktokUsername ? '@' + u.tiktokUsername : '' }),
+              el('td', { textContent: ago(u.lastSeen) }),
+              el('td', { textContent: u.note || '' }),
+              el('td', {}, act)));
+          });
+        } catch (e) {
+          $('listError').textContent = e.message;
+        }
+      }
+
+      $('createForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('createError').textContent = '';
+        try {
+          await api('/api/users', {
+            method: 'POST',
+            body: {
+              username: $('newUsername').value,
+              password: $('newPassword').value,
+              days: Number($('newDays').value) || 0,
+              hours: Number($('newHours').value) || 0,
+              minutes: Number($('newMinutes').value) || 0,
+              role: $('newRole').value,
+              note: $('newNote').value,
+            },
+          });
+          $('newUsername').value = '';
+          $('newPassword').value = '';
+          $('newNote').value = '';
+          load();
+        } catch (ex) {
+          $('createError').textContent = ex.message;
+        }
+      });
+      $('logoutBtn').addEventListener('click', async () => {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+        location.replace('index-2.html');
+      });
+      load();
+      setInterval(load, 60000);
+    })();
+  </script>
+</body>
+
+<!-- Mirrored from printer-gyn4.onrender.com/admin.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 11 Nov 2026 10:23:09 GMT -->
+</html>
